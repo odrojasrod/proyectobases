@@ -1,0 +1,22 @@
+---
+const { correo, nombre, apellidos, direccion } = Astro.props
+import '../styles/global.css'
+---
+
+<div
+    class="block max-w-sm p-6 border rounded-lg shadow-sm bg-gray-800 border-gray-700 hover:bg-gray-900 transition"
+>
+    <h3 class="mb-2 text-2xl font-bold tracking-tight text-gray-900 text-white">
+        {nombre}
+        {apellidos}
+    </h3>
+    <div class="font-normal text-gray-400">
+        <p>{correo}</p>
+        <p>
+            {direccion.calle}
+            {direccion.ciudad}
+            {direccion.estado}
+            {direccion.pais}
+        </p>
+    </div>
+</div>

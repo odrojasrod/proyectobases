@@ -1,0 +1,37 @@
+---
+import Layout from '../layouts/Layout.astro'
+import Users from '../components/Users.astro'
+import '../styles/global.css'
+
+let data = []
+let errorMsg = null
+
+try {
+    const response = await fetch('http://localhost:8080/api/usuarios/todos')
+    if (!response.ok) {
+        throw new Error('Error en la respuesta: ' + response.status)
+    }
+    data = await response.json()
+} catch (error) {
+    console.error(error)
+}
+---
+
+<Layout>
+    <div class="flex flex-wrap justify-center gap-4">
+        {
+            data.length > 0 ? (
+                data.map((user) => (
+                    <Users
+                        correo={user.correo}
+                        nombre={user.nombre}
+                        apellidos={user.apellidos}
+                        direccion={user.direccion}
+                    />
+                ))
+            ) : (
+                <p class="text-white font-bold">0 Resultados</p>
+            )
+        }
+    </div>
+</Layout>

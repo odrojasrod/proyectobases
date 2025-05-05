@@ -1,0 +1,273 @@
+---
+import '../styles/global.css'
+export const prerender = false
+
+const apiUrl = 'http://localhost:1234'
+
+let nombreCientifico
+let nombreComun
+let fechaDescubrimiento
+let calle
+let ciudad
+let pais
+let taxon
+let licencia
+let urlImg
+let estado
+
+let data = []
+let errorMsg = null
+
+try {
+    const response = await fetch('http://localhost:8080/api/usuarios/todos')
+    if (!response.ok) {
+        throw new Error('Error en la respuesta: ' + response.status)
+    }
+    data = await response.json()
+} catch (error) {
+    console.error(error)
+}
+---
+
+<div class="">
+    <h1 class="text-white">Actualizar Observación</h1>
+    <form id="id-formulario" class="max-w-md mx-auto" method="POST">
+        <div class="relative z-0 mb-5 group mt-4">
+            <input
+                type="text"
+                name="idObservacion"
+                id="idObservacion"
+                class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer"
+                placeholder=" "
+                required
+            />
+            <label
+                for="idObservacion"
+                class="peer-focus:font-medium absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:start-0 rtl:peer-focus:translate-x-1/4 rtl:peer-focus:left-auto peer-focus:text-blue-600 peer-focus:dark:text-blue-500 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6"
+                >Id Observacion</label
+            >
+            <button
+                id="buscar"
+                class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+                >Buscar Observacion</button
+            >
+        </div>
+        <div class="relative z-0 w-full mb-5 group mt-4">
+            <input
+                type="text"
+                name="nombre_cientifico"
+                id="nombre_c"
+                class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer"
+                placeholder=" "
+                required
+            />
+            <label
+                for="nombre_c"
+                class="peer-focus:font-medium absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:start-0 rtl:peer-focus:translate-x-1/4 rtl:peer-focus:left-auto peer-focus:text-blue-600 peer-focus:dark:text-blue-500 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6"
+                >Nombre Cientifico</label
+            >
+        </div>
+        <div class="relative z-0 w-full mb-5 group">
+            <input
+                type="text"
+                name="nombre_comun"
+                id="textNoC"
+                class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer"
+                placeholder=" "
+            />
+            <label
+                for="textNoC"
+                class="peer-focus:font-medium absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:start-0 rtl:peer-focus:translate-x-1/4 peer-focus:text-blue-600 peer-focus:dark:text-blue-500 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6"
+                >Nombre Comun</label
+            >
+        </div>
+        <div class="relative z-0 w-full mb-5 group">
+            <input
+                type="text"
+                name="urlImg"
+                id="nombre_c"
+                class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer"
+                placeholder=" "
+                required
+            />
+            <label
+                for="urlImg"
+                class="peer-focus:font-medium absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:start-0 rtl:peer-focus:translate-x-1/4 rtl:peer-focus:left-auto peer-focus:text-blue-600 peer-focus:dark:text-blue-500 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6"
+                >Url Imagen</label
+            >
+        </div>
+        <label
+            for="licencias"
+            class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+            >Licencias</label
+        >
+        <select
+            id="licencias"
+            name="licencias"
+            class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+        >
+        </select>
+
+        <h3
+            class="py-2.5 px-0 w-full text-xl bg-transparent appearance-none text-white mb-4"
+        >
+            Fecha observación
+        </h3>
+        <div class="grid grid-cols-3 gap-4 my-4">
+            <div class="relative max-w-sm col-span-2">
+                <div
+                    class="absolute inset-y-0 start-0 flex items-center ps-3.5 pointer-events-none"
+                >
+                    <svg
+                        class="w-4 h-4 text-gray-500 dark:text-gray-400"
+                        aria-hidden="true"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                    >
+                        <path
+                            d="M20 4a2 2 0 0 0-2-2h-2V1a1 1 0 0 0-2 0v1h-3V1a1 1 0 0 0-2 0v1H6V1a1 1 0 0 0-2 0v1H2a2 2 0 0 0-2 2v2h20V4ZM0 18a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8H0v10Zm5-8h10a1 1 0 0 1 0 2H5a1 1 0 0 1 0-2Z"
+                        ></path>
+                    </svg>
+                </div>
+                <input
+                    type="date"
+                    name="fecha_descubrimiento"
+                    id="fecha_descubrimiento"
+                    class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full ps-10 p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                    placeholder="27/05/2025"
+                    required
+                />
+            </div>
+        </div>
+        <label
+            for="taxones"
+            class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+            >Taxón</label
+        >
+        <select
+            id="taxones"
+            name="taxones"
+            class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+        >
+        </select>
+
+        <h3
+            class="py-2.5 px-0 w-full text-xl bg-transparent appearance-none text-white mb-4"
+        >
+            Direccion
+        </h3>
+
+        <div class="grid md:grid-cols-2 md:gap-6">
+            <div class="relative z-0 w-full mb-5 group">
+                <input
+                    type="text"
+                    name="calle"
+                    id="calle"
+                    class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer"
+                    placeholder=" "
+                    required
+                />
+                <label
+                    for="calle"
+                    class="peer-focus:font-medium absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:start-0 rtl:peer-focus:translate-x-1/4 peer-focus:text-blue-600 peer-focus:dark:text-blue-500 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6"
+                    >Calle</label
+                >
+            </div>
+            <div class="relative z-0 w-full mb-5 group">
+                <input
+                    type="text"
+                    name="estado"
+                    id="estado-id"
+                    class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer"
+                    placeholder=" "
+                    required
+                />
+                <label
+                    for="estado-id"
+                    class="peer-focus:font-medium absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:start-0 rtl:peer-focus:translate-x-1/4 peer-focus:text-blue-600 peer-focus:dark:text-blue-500 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6"
+                    >Estado</label
+                >
+            </div>
+        </div>
+        <div class="grid md:grid-cols-2 md:gap-6">
+            <div class="relative z-0 w-full mb-5 group">
+                <input
+                    type="text"
+                    name="pais"
+                    id="pais"
+                    class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer"
+                    placeholder=" "
+                    required
+                />
+                <label
+                    for="pais"
+                    class="peer-focus:font-medium absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:start-0 rtl:peer-focus:translate-x-1/4 peer-focus:text-blue-600 peer-focus:dark:text-blue-500 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6"
+                    >Pais</label
+                >
+            </div>
+            <div class="relative z-0 w-full mb-5 group">
+                <input
+                    type="text"
+                    name="ciudad"
+                    id="floating_company"
+                    class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer"
+                    placeholder=" "
+                    required
+                />
+                <label
+                    for="floating_company"
+                    class="peer-focus:font-medium absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:start-0 rtl:peer-focus:translate-x-1/4 peer-focus:text-blue-600 peer-focus:dark:text-blue-500 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6"
+                    >Ciudad</label
+                >
+            </div>
+        </div>
+        <button
+            type="submit"
+            class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+            >Insertar</button
+        >
+    </form>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const botonBuscar = document.getElementById('buscar')
+        botonBuscar.addEventListener('click', async (e) => {
+            e.preventDefault()
+
+            const id = document.getElementById('idObservacion').value
+            if (!id) {
+                alert('Por favor ingresa un ID')
+                return
+            }
+            try {
+                const response = await fetch(
+                    `http://localhost:8080/api/observaciones/${id}`,
+                )
+                if (!response.ok)
+                    throw new Error('No se encontró la observación')
+
+                const data = await response.json()
+                document.getElementById('nombre_c').value =
+                    data.nombreCientifico || ''
+                document.getElementById('textNoC').value =
+                    data.nombreComun || ''
+                document.getElementById('urlImg').value = data.urlImg || ''
+                document.getElementById('fecha_descubrimiento').value =
+                    data.fechaDescubrimiento || ''
+                document.getElementById('calle').value = data.calle || ''
+                document.getElementById('ciudad').value = data.ciudad || ''
+                document.getElementById('pais').value = data.pais || ''
+
+                const licenciasSelect = document.getElementById('licencias')
+                if (licenciasSelect) licenciasSelect.value = data.licencia || ''
+
+                const taxonSelect = document.getElementById('taxones')
+                if (taxonSelect) taxonSelect.value = data.taxon || ''
+            } catch (error) {
+                alert('Error al buscar observación')
+            }
+        })
+    })
+</script>

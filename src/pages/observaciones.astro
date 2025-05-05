@@ -1,0 +1,40 @@
+---
+import Layout from '../layouts/Layout.astro'
+import ObservationCard from '../components/ObservacionCard.astro'
+import '../styles/global.css'
+
+const apiUrl = ''
+let data = []
+
+try {
+    const res = await fetch('http://localhost:8080/api/observaciones/todos')
+    if (!res.ok) throw new Error(`Response status: ${res.status}`)
+
+    data = await res.json()
+} catch (error) {
+    if (error instanceof Error) {
+        console.log(error.message)
+    }
+}
+---
+
+<Layout>
+    <div class="flex flex-wrap justify-center gap-4">
+        {
+            data.length > 0 ? (
+                data.map((observacion) => (
+                    <ObservationCard
+                        id={observacion.id}
+                        nombre_comun={observacion.nombreComun}
+                        nombre_cientifico={observacion.nombreCliente}
+                        id_imagen={observacion.id_imagen}
+                        id_taxon={observacion.id_taxon}
+                        id_direccion={observacion.idDireccion}
+                    />
+                ))
+            ) : (
+                <p class="text-white font-bold">0 Resultados</p>
+            )
+        }
+    </div>
+</Layout>
