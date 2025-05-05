@@ -1,0 +1,202 @@
+-- Tabla Direccion
+CREATE TABLE Direccion (
+    id_direccion SERIAL PRIMARY KEY,
+    calle VARCHAR(50),
+    ciudad VARCHAR(50),
+    estado VARCHAR(50),
+    pais VARCHAR(50)
+);
+
+-- Tabla Usuario
+CREATE TABLE Usuario (
+     
+    nombre VARCHAR(50),
+    apellidos VARCHAR(50),
+    id_direccion INT,
+    CONSTRAINT fk_direccion FOREIGN KEY (id_direccion) REFERENCES Direccion(id_direccion)
+);
+
+-- Tabla Taxon (modelo con jerarquía auto-relacionada)
+CREATE TABLE Taxon (
+    taxon_id SERIAL PRIMARY KEY,
+    taxon_padre_id INT,
+    nombre VARCHAR(100),
+    FOREIGN KEY (taxon_padre_id) REFERENCES Taxon(taxon_id),
+);
+
+
+-- Tabla Licencia actualizada
+CREATE TABLE Licencia (
+    id SERIAL PRIMARY KEY,
+    nombre VARCHAR(50) NOT NULL
+);
+
+-- Tabla Imagen con referencia a Licencia
+CREATE TABLE Image (
+    id SERIAL PRIMARY KEY,
+	correo VARCHAR(100),
+	fecha DATE,
+	url VARCHAR(250),
+	id_licencia NUMBER,
+	foreign key (correo) references Usuario(correo),
+	foreign key (id_licencia) references Licencia(id)
+);
+
+-- Tabla Observation
+CREATE TABLE Observation (
+    observation_id SERIAL PRIMARY KEY,
+    latitud DECIMAL(9,6),
+    longitud DECIMAL(9,6),
+    fecha DATE,
+    taxon_id INT,
+    url_imagen VARCHAR(255),
+    comentario TEXT,
+    CONSTRAINT fk_taxon_observation FOREIGN KEY (taxon_id) REFERENCES Taxon(taxon_id)
+);
+
+-- Tabla Identification
+CREATE TABLE Identification (
+    correo NUMBER,
+	id_observacion NUMBER,
+	calificacion NUMBER,
+	foreign key (correo) references Usuario(correo),
+	foreign key (id_observaciones) references Observation(observation_id)
+)
+
+Insert into Licencia(nombre) values ('CC0'), 
+('CC BY'), 
+('CC BY-SA'), 
+('CC BY-ND'), 
+('CC BY-NC'), 
+('CC BY-NC-SA'), 
+('CC BY-NC-ND'), 
+('GPL'), 
+('LGPL'), 
+('MIT'), 
+('Apache'), 
+('BSD'), 
+('Proprietary'), 
+('Royalty-Free'), 
+('Public Domain')
+
+CREATE OR REPLACE PROCEDURE insertar_usuarios(
+  nombre TEXT,
+  correo1 TEXT,
+  apellidos TEXT, 
+  calle1 TEXT,
+  estado1 TEXT,
+  pais1 TEXT,
+  ciudad1 TEXT
+)
+language plpgsql
+as $$
+declare
+  correo_check TEXT;
+  id_direccion INT;
+begin
+  SELECT U.correo INTO correo_check FROM Usuario U WHERE U.correo = correo1;
+  
+  if correo_check is null then
+    SELECT D.id INTO id_direccion FROM Direccion D WHERE D.calle = calle1 and D.pais = pais1 and D.estado = estado1;
+    
+    if id_direccion is null then
+      INSERT INTO Direccion (calle, ciudad, estado, pais) VALUES (calle1, ciudad1, estado1, pais1) returning id INTO id_direccion;
+    end if;
+    
+    INSERT INTO Usuario(correo, nombre, apellidos, id_direccion) VALUES (correo1, nombre, apellidos, id_direccion);
+  else
+    RAISE NOTICE 'Usuario ya existe: %', correo_check; 
+  end if;
+end;
+$$;
+
+CREATE OR REPLACE PROCEDURE insertar_taxones(
+    taxones_text TEXT
+)
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    niveles TEXT[];
+    nivel_actual TEXT;
+    parent_id BIGINT := NULL;
+    i INTEGER := 1;
+    taxon_id BIGINT;
+BEGIN
+    -- Dividir cadena por comas en array
+    niveles := string_to_array(taxones_text, ',');
+
+    -- Iterar niveles e insertar si no existe
+    WHILE i <= array_length(niveles, 1) LOOP
+        nivel_actual := trim(niveles[i]);
+
+        -- Verificar si ya existe el taxon con ese nombre y padre
+        SELECT taxon_id INTO taxon_id
+        FROM taxon
+        WHERE nombre_cientifico = nivel_actual
+          AND ( (parent_id IS NULL AND taxon_padre_id IS NULL)
+                OR taxon_padre_id = parent_id );
+
+        -- Si no existe, insertar
+        IF NOT FOUND THEN
+            INSERT INTO taxon (nombre_cientifico, nivel_taxon, taxon_padre_id)
+            VALUES (
+                nivel_actual,
+                CASE i
+                    WHEN 1 THEN 'domain'
+                    WHEN 2 THEN 'kingdom'
+                    WHEN 3 THEN 'phylum'
+                    WHEN 4 THEN 'class'
+                    WHEN 5 THEN 'order'
+                    WHEN 6 THEN 'family'
+                    WHEN 7 THEN 'genus'
+                    WHEN 8 THEN 'species'
+                    ELSE 'other'
+                END,
+                parent_id
+            )
+            RETURNING taxon_id INTO taxon_id;
+        END IF;
+
+        -- Actualizar parent_id para siguiente nivel
+        parent_id := taxon_id;
+        i := i + 1;
+    END LOOP;
+END;
+$$;
+
+CREATE OR REPLACE PROCEDURE insertar_observacion(
+    p_latitud DECIMAL,
+    p_longitud DECIMAL,
+    p_fecha DATE,
+    p_taxones_text TEXT,
+    p_url_imagen VARCHAR,
+    p_comentario TEXT
+)
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    taxon_id BIGINT;
+BEGIN
+    -- Llamar al procedimiento para insertar los taxones y obtener último taxon_id (especie)
+    PERFORM insertar_taxones(p_taxones_text);
+
+    -- Obtener taxon_id del último nivel insertado o existente
+    SELECT taxon_id INTO taxon_id
+    FROM taxon
+    WHERE nombre_cientifico = split_part(p_taxones_text, ',', array_length(string_to_array(p_taxones_text, ','), 1));
+
+    -- Verificar si ya existe observación con misma latitud, longitud, fecha y taxon
+    IF NOT EXISTS (
+        SELECT 1 FROM observation
+        WHERE latitud = p_latitud
+          AND longitud = p_longitud
+          AND fecha = p_fecha
+          AND taxon_id = taxon_id
+    ) THEN
+        -- Insertar la nueva observación
+        INSERT INTO observation(latitud, longitud, fecha, taxon_id, url_imagen, comentario)
+        VALUES (p_latitud, p_longitud, p_fecha, taxon_id, p_url_imagen, p_comentario);
+    END IF;
+END;
+$$;
+
